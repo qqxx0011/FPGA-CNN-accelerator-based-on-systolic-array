@@ -40,3 +40,4 @@ module PE #(parameter	N = 8)
 
 endmodule
 
+//实现一个受控的乘加器，乘加的实现是使用一个IP核来实现的

@@ -18,10 +18,23 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+/**************************************************************************************************************/
+//总的来说作用应该是：
+//输入有效时开始存数据进入缓存，同时开始计数，然后存满了才能读数，读了应该会自动移位
+//接下来就必须边输入边读，没有输入就不读
+/**************************************************************************************************************/
 module linebuffer240 #(
     parameter WIDTH = 16,
     parameter IMG_WIDTH = 1920
     )
+
+
+
+
     (
     input  clk,
     input  rst_n,
@@ -30,8 +43,15 @@ module linebuffer240 #(
     input  valid_in,
     output reg valid_out //输出给下一级的valid_in，也即上一级开始读的同时下一级就可以开始写入
 );
+
+
+
+
+
 wire   rd_en;//读使能
 reg    [10:0] cnt;//这里的宽度注意要根据IMG_WIDTH的值来设置，需要满足cnt的范围≥图像宽度
+////////////////////////////////////////////////////////////////////////////////////
+//存储输入和输入使能
 reg    valid_in_d1;
 reg   [WIDTH-1:0] din_d1;
 always @(posedge clk or negedge rst_n) begin
@@ -44,6 +64,9 @@ always @(posedge clk or negedge rst_n) begin
            din_d1<=din;
     end
  end
+
+
+//valid_in有效时，cnt从0加到1920
 always @(posedge clk or negedge rst_n) begin
     if(!rst_n)
         cnt <= {10{1'b0}};
@@ -55,8 +78,13 @@ always @(posedge clk or negedge rst_n) begin
 else
     cnt <= cnt;
 end
+
+////////////////////////////////////////////////////////////////////////////////////
+
 //一行数据写完之后，该级fifo就可以开始读出，下一级也可以开始写入了
 assign rd_en = ((cnt == IMG_WIDTH) && (valid_in)) ? 1'b1:1'b0;
+
+
 
 always @(posedge clk or negedge rst_n) begin
     if(!rst_n) begin

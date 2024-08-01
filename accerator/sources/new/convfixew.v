@@ -6,7 +6,8 @@ module convfixew #
 	(
 	input		Clk,
 	input		Rst_n,
-	input       compute_SA,
+	input       compute_SA,//用途是啥？？不是保持为1就行了？？
+
 	input signed [N-1:0] F1,
 	input signed [N-1:0] F2,
 	input signed [N-1:0] F3,
@@ -16,6 +17,7 @@ module convfixew #
 	input signed [N-1:0] F7,
 	input signed [N-1:0] F8,
 	input signed [N-1:0] F9,
+
 	input signed [N-1:0] W00,
 	input signed [N-1:0] W01,
 	input signed [N-1:0] W02,
@@ -25,6 +27,7 @@ module convfixew #
 	input signed [N-1:0] W12,
 	input signed [N-1:0] W13,
 	input signed [N-1:0] W14,
+
 	input signed [N-1:0] G00,
 	input signed [N-1:0] G01,
 	input signed [N-1:0] G02,
@@ -34,8 +37,10 @@ module convfixew #
 	input signed [N-1:0] G12,
 	input signed [N-1:0] G13,
 	input signed [N-1:0] G14,
-	output  reg signed [N*2-1:0] C1,
-	output  reg signed [N*2-1:0] C2
+
+	output  reg signed [N*2-1:0] C1,//前八个时钟周期都是F9*W14，最后一个时钟周期变为输入向量与权重向量相乘
+	output  reg signed [N*2-1:0] C2 //前八个时钟周期都是F9*G14，最后一个时钟周期变为输入向量与权重向量相乘
+
     );
     
     wire 		signed [N*2-1:0]	P11_C,P21_C;	
@@ -62,7 +67,7 @@ module convfixew #
     end
 
    ///First PE
-    PE  PE_11(Clk,Rst_n,Sclr,compute_SA,F1,W00,zero,P11_F,P11_C);
+    PE  PE_11(Clk,Rst_n,Sclr,compute_SA,F1,W00,zero,P11_F,P11_C);//输入向量甚至都没有输出接口，要他干嘛的？？？
     PE  PE_12(Clk,Rst_n,Sclr,compute_SA,F2,W01,P11_C,P12_F,P12_C);
     PE  PE_13(Clk,Rst_n,Sclr,compute_SA,F3,W02,P12_C,P13_F,P13_C);
     PE  PE_14(Clk,Rst_n,Sclr,compute_SA,F4,W03,P13_C,P14_F,P14_C);

@@ -20,8 +20,8 @@
 //////////////////////////////////////////////////////////////////////////////////
 module pooling #(
     parameter M = 16, //data width
-    parameter COL_NUM =  1920,
-    parameter ROW_NUM =  128
+    parameter COL_NUM =  1920,//column缩写，此处应该表示列数
+    parameter ROW_NUM =  128  //row的缩写，此处应该表示行数
     )
     (
     input clk,
@@ -38,7 +38,10 @@ module pooling #(
 
     wire flag;
         //行和列信号的计数更新
+
     //  行和列的计数器
+
+    //相当于在128行，1920列的数据上，从左到右，从上到下依次移动
     reg      [10:0]  c_cnt ;
     reg      [10:0]  r_cnt ;
     always @(posedge clk or negedge Rst_n)
@@ -59,6 +62,14 @@ module pooling #(
         else if(c_cnt == COL_NUM-1 && valid_line == 1'b1) 
             r_cnt    <=     r_cnt + 1'b1;
             
+
+
+
+
+
+
+
+
     reg even;
     always @(posedge clk or negedge Rst_n)
         if(Rst_n == 1'b0)
@@ -70,6 +81,14 @@ module pooling #(
 //    assign even = (c_cnt == 1 && valid_o2) ? 1'b1 :1'b0;
   
     assign flag = (valid_o2 ) ? 1'b1:1'b0;
+
+
+
+
+
+
+
+
     always @(posedge clk or negedge Rst_n) begin
         if (!Rst_n) begin
             result <= 0;
