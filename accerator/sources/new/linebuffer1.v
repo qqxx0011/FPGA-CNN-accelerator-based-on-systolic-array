@@ -28,23 +28,26 @@ module linebuffer1 #(
     input  [WIDTH-1:0] din,
     output [WIDTH-1:0] dout,
     input  valid_in,
-    output valid_out //输出给下一级的valid_in，也即上一级开始读的同时下一级就可以开始写入
+    output valid_out
 );
 wire   rd_en;//读使能
-reg    [8:0] cnt;//这里的宽度注意要根据IMG_WIDTH的值来设置，需要满足cnt的范围≥图像宽度
+reg    [8:0] cnt;//由于fifo是每个时钟周期移位一次的，所以找一个计数器记录写使能有效的时钟数量就可以记录此时fifo中进了几个数据
 
+//计数器从0变1的时钟沿，写入第一个数据，因此从IMG_WIDTH-1变IMG_WIDTH的时钟沿写入最后一个数据，这时要考虑读是放在里面读还是被挤出来后读
+//从而考虑要不要再fifo里面留一个位置,应该是要留一个位置的，有点乱，最好找个相关源码看一看RTFSC
 always @(posedge clk or negedge rst_n) begin
     if(!rst_n)
         cnt <= {9{1'b0}};
-    else if(valid_in)
-    if(cnt == IMG_WIDTH-1)
-        cnt <= IMG_WIDTH-1;
+    else if(valid_in)begin
+        if(cnt == IMG_WIDTH-1)
+            cnt <= IMG_WIDTH-1;
+        else
+            cnt <= cnt +1'b1;
+    end
     else
-        cnt <= cnt +1'b1;
-else
-    cnt <= cnt;
+        cnt <= cnt;
 end
-//一行数据写完之后，该级fifo就可以开始读出，下一级也可以开始写入了
+//buffer中存满了并且还要移位的时候才会有读出的数据
 assign rd_en = ((cnt == IMG_WIDTH-1) && (valid_in)) ? 1'b1:1'b0;
 assign valid_out = rd_en;
 
@@ -55,11 +58,15 @@ fifo_generator_0 u_line_fifo(
 .dout(dout),
 .wr_en (valid_in),
 .rd_en (rd_en), 
-.wr_rst_busy(),  
+.wr_rst_busy(), 
 .rd_rst_busy()
 );
 
 
 endmodule
 
+
+//虽然逻辑上好像不用自动切换输入法，但是自动切换很有安全感
+//试试输入法自动切换成功没有？？linux用不了？？可以了！！
+//爽了！！
 

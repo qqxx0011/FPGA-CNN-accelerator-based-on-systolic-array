@@ -26,9 +26,17 @@ module SMB #
     (
     input clk,
     input Rst_n,
+
+
+    //还是只有一个输入
     input [M-1:0] din,
     input valid_in,
+
+
     input repeat_in,
+
+
+    //定义9个输出信号，并且是八位的
     output reg [M-1:0] d1,
     output reg [M-1:0] d2,
     output reg [M-1:0] d3,
@@ -38,46 +46,80 @@ module SMB #
     output reg [M-1:0] d7,
     output reg [M-1:0] d8,
     output reg [M-1:0] d9,
+
+
+
     output reg fmap_finish,
+
+
+//同样是坐标计数，就称这样从左到右从上到下的计数方式为坐标计数吧
     output reg  [8:0] count_x,          //index of row 0-415
     output reg  [8:0] count_y,           //index of column 0-415
+
+
+
     output reg  valid_out1,
     output reg  valid_out2,
+
+
+
     output compute_SA
+
+
+
     );
 
+
+
     reg [10:0] addr_r1,addr_r2,addr_r3; //卷积核对应的行坐标
+
+
+    
+
+
     // 延时寄存器
+    //定义了一个下三角的寄存器阵列
     reg [M-1:0] d2_reg1,d3_reg1,d3_reg2,d4_reg1,d4_reg2,d4_reg3,d5_reg1,d5_reg2,d5_reg3,d5_reg4;
     reg [M-1:0] d6_reg1,d6_reg2,d6_reg3,d6_reg4,d6_reg5;
     reg [M-1:0] d7_reg1,d7_reg2,d7_reg3,d7_reg4,d7_reg5,d7_reg6;
     reg [M-1:0] d8_reg1,d8_reg2,d8_reg3,d8_reg4,d8_reg5,d8_reg6,d8_reg7;
     reg [M-1:0] d9_reg1,d9_reg2,d9_reg3,d9_reg4,d9_reg5,d9_reg6,d9_reg7,d9_reg8;
     
-    wire [M-1:0] dout,dout_0,dout_1,dout_2;//行缓冲输出的三个值
-    wire flag; //行缓冲准备完成
+
+
+
+
+    
+    wire [M-1:0] dout,dout_0,dout_1,dout_2;//三个buffer的输出值
+    wire flag; //行缓冲准备完成，应该是用于标识三个fifo都装满了
+
+
+
+
+
     always @(posedge clk or negedge Rst_n) begin
         if (!Rst_n ) begin
             count_x <=0;
             count_y <=0;
             fmap_finish <= 0;
         end
-        else if(valid_in && flag)
-        if (count_y < SP-1) begin   //0-415
-            count_y <= count_y + 1;
-        end
-        else if (count_x < 255+2)begin
-            count_y <= 0;
-            count_x <= count_x +1;
+        else if(valid_in && flag)begin
+            if (count_y < SP-1) begin   //0-415
+                count_y <= count_y + 1;
+            end
+            else if (count_x < 255+2)begin
+                count_y <= 0;
+                count_x <= count_x +1;
+            end
+            else begin
+                count_x <= 0;
+                count_y <= 0;
+            end
         end
         else begin
-            count_x <= 0;
-            count_y <= 0;
+            count_x <= count_x;
+            count_y <= count_y;
         end
-    else begin
-        count_x <= count_x;
-        count_y <= count_y;
-    end
     end
     
     reg enb;
@@ -99,6 +141,19 @@ module SMB #
             enb <= 0;
         end
     end
+
+
+
+
+
+
+
+
+
+
+
+
+    
     
     assign wea = valid_in;
     

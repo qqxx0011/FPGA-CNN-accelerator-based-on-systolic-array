@@ -20,8 +20,8 @@
 //////////////////////////////////////////////////////////////////////////////////
 module LineBuffer #(
     parameter WIDTH = 8,
-    parameter COL_NUM = 482,
-    parameter ROW_NUM = 256,
+    parameter COL_NUM = 482,//列数482
+    parameter ROW_NUM = 256,//行数256
     parameter LINE_NUM =3
     )
     (
@@ -31,33 +31,59 @@ module LineBuffer #(
     input valid_in,
     input [WIDTH-1:0] din,
     //输出 三个行缓存模块的数据输出和第三行数据输出
-    output[WIDTH-1:0] dout,
+    output[WIDTH-1:0] dout,//和dout_2一模一样
     output[WIDTH-1:0] dout_0,
     output[WIDTH-1:0] dout_1,
     output[WIDTH-1:0] dout_2,
+
+
+
+    //在意一下这个流水线的细节
     //标志位 开始流水线操作的开始
     output flag
+
+
 );
 // 寄存器 行缓存数据的传递   
-reg   [WIDTH-1:0] line[2:0];
-reg   valid_in_r  [2:0];
-wire  valid_out_r [2:0];
+reg   [WIDTH-1:0] line[2:0];//用于放置输入的值
+reg   valid_in_r  [2:0];//放置输入的有效指示信号
+wire  valid_out_r [2:0];//放置中间的输出变量
 //行缓存数据的输出寄存
 wire  [WIDTH-1:0] dout_r[2:0];
 
+
+
+
+
+
+//下面的赋值定义了顶层的输出
 assign dout_0 = dout_r[0];
 assign dout_1 = dout_r[1];
 assign dout_2 = dout_r[2];
 
 assign dout = dout_r[2];
+
+
+
+
+
+
+
 //  行和列的计数器
 reg      [10:0]  c_cnt ;
 reg      [10:0]  r_cnt ;
+
+
+
+
+
+
+//将三个buffer首位相接，然后将三个buffer的输出作为顶层的输出
 // 例化行缓存模块，并将模块之间的信号进行关联。通过generate简化代码
 genvar i;
 generate
     begin:HDL1
-    for (i = 0;i < LINE_NUM;i = i +1)
+    for (i = 0;i < LINE_NUM;i = i + 1)
         begin : buffer           
             if(i == 0) begin
                 always @(*)begin
@@ -85,8 +111,21 @@ generate
     end
 endgenerate
 
+
+
+
+
+
+
+
 assign  flag  =r_cnt >= 11'd3 ? valid_in : 1'b0;
 
+
+
+
+
+//输入有效时正常运转，输入无效时，停止计数并保持
+//也是从左到右，从上到下计数
 //行和列信号的计数更新
 always @(posedge clk or negedge rst_n)
     if(rst_n == 1'b0)
